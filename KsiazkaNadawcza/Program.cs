@@ -16,7 +16,7 @@ namespace KsiazkaNadawcza
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Application.Run(new Ksiazka_Nadawcza());
         }
     }
 }
