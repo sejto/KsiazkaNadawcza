@@ -67,22 +67,30 @@
             this.textBox5 = new System.Windows.Forms.TextBox();
             this.textBox6 = new System.Windows.Forms.TextBox();
             this.Zaznacz = new System.Windows.Forms.Button();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.label14 = new System.Windows.Forms.Label();
+            this.dateTimePicker2 = new System.Windows.Forms.DateTimePicker();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.NrFakturyBtn = new System.Windows.Forms.Button();
+            this.nrFakturyTxt = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.groupBox3.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.SuspendLayout();
             // 
             // dateTimePicker1
             // 
-            this.dateTimePicker1.Location = new System.Drawing.Point(42, 18);
+            this.dateTimePicker1.Location = new System.Drawing.Point(6, 19);
             this.dateTimePicker1.Name = "dateTimePicker1";
             this.dateTimePicker1.Size = new System.Drawing.Size(148, 20);
             this.dateTimePicker1.TabIndex = 0;
             // 
             // PokazBtn
             // 
-            this.PokazBtn.Location = new System.Drawing.Point(246, 15);
+            this.PokazBtn.Location = new System.Drawing.Point(175, 16);
             this.PokazBtn.Name = "PokazBtn";
             this.PokazBtn.Size = new System.Drawing.Size(75, 23);
             this.PokazBtn.TabIndex = 1;
@@ -95,13 +103,14 @@
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Location = new System.Drawing.Point(42, 110);
             this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.RowHeadersVisible = false;
             this.dataGridView1.Size = new System.Drawing.Size(1042, 112);
             this.dataGridView1.TabIndex = 2;
             this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridView1_CellContentClick);
             // 
             // Button1
             // 
-            this.Button1.Location = new System.Drawing.Point(1109, 445);
+            this.Button1.Location = new System.Drawing.Point(1109, 404);
             this.Button1.Name = "Button1";
             this.Button1.Size = new System.Drawing.Size(112, 23);
             this.Button1.TabIndex = 3;
@@ -111,7 +120,7 @@
             // 
             // Button2
             // 
-            this.Button2.Location = new System.Drawing.Point(1109, 499);
+            this.Button2.Location = new System.Drawing.Point(1109, 555);
             this.Button2.Name = "Button2";
             this.Button2.Size = new System.Drawing.Size(112, 23);
             this.Button2.TabIndex = 4;
@@ -121,14 +130,15 @@
             // 
             // txt_KTH
             // 
-            this.txt_KTH.Location = new System.Drawing.Point(143, 73);
+            this.txt_KTH.Location = new System.Drawing.Point(144, 84);
             this.txt_KTH.Name = "txt_KTH";
             this.txt_KTH.Size = new System.Drawing.Size(178, 20);
             this.txt_KTH.TabIndex = 5;
+            this.txt_KTH.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.CheckKeys);
             // 
             // SzukajBtn
             // 
-            this.SzukajBtn.Location = new System.Drawing.Point(345, 70);
+            this.SzukajBtn.Location = new System.Drawing.Point(346, 81);
             this.SzukajBtn.Name = "SzukajBtn";
             this.SzukajBtn.Size = new System.Drawing.Size(75, 23);
             this.SzukajBtn.TabIndex = 6;
@@ -139,7 +149,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(39, 80);
+            this.label1.Location = new System.Drawing.Point(40, 91);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(81, 13);
             this.label1.TabIndex = 7;
@@ -148,9 +158,9 @@
             // dataGridView2
             // 
             this.dataGridView2.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView2.Location = new System.Drawing.Point(42, 332);
+            this.dataGridView2.Location = new System.Drawing.Point(42, 355);
             this.dataGridView2.Name = "dataGridView2";
-            this.dataGridView2.Size = new System.Drawing.Size(1042, 359);
+            this.dataGridView2.Size = new System.Drawing.Size(1042, 336);
             this.dataGridView2.TabIndex = 8;
             // 
             // groupBox1
@@ -410,19 +420,78 @@
             // 
             // Zaznacz
             // 
-            this.Zaznacz.Location = new System.Drawing.Point(1109, 355);
+            this.Zaznacz.Location = new System.Drawing.Point(42, 326);
             this.Zaznacz.Name = "Zaznacz";
-            this.Zaznacz.Size = new System.Drawing.Size(112, 23);
+            this.Zaznacz.Size = new System.Drawing.Size(64, 23);
             this.Zaznacz.TabIndex = 10;
-            this.Zaznacz.Text = "Zaznacz/Odznacz";
+            this.Zaznacz.Text = "Wszystko";
             this.Zaznacz.UseVisualStyleBackColor = true;
             this.Zaznacz.Click += new System.EventHandler(this.Zaznacz_Click);
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.dateTimePicker1);
+            this.groupBox3.Controls.Add(this.PokazBtn);
+            this.groupBox3.Location = new System.Drawing.Point(46, 12);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(253, 51);
+            this.groupBox3.TabIndex = 11;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Dokumenty z dnia:";
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(1106, 501);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(130, 13);
+            this.label14.TabIndex = 12;
+            this.label14.Text = "Ksiażka nadawcza z dnia:";
+            // 
+            // dateTimePicker2
+            // 
+            this.dateTimePicker2.Location = new System.Drawing.Point(1109, 519);
+            this.dateTimePicker2.Name = "dateTimePicker2";
+            this.dateTimePicker2.Size = new System.Drawing.Size(139, 20);
+            this.dateTimePicker2.TabIndex = 13;
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.nrFakturyTxt);
+            this.groupBox4.Controls.Add(this.NrFakturyBtn);
+            this.groupBox4.Location = new System.Drawing.Point(506, 12);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(274, 51);
+            this.groupBox4.TabIndex = 14;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Nr faktury:";
+            // 
+            // NrFakturyBtn
+            // 
+            this.NrFakturyBtn.Location = new System.Drawing.Point(186, 15);
+            this.NrFakturyBtn.Name = "NrFakturyBtn";
+            this.NrFakturyBtn.Size = new System.Drawing.Size(75, 23);
+            this.NrFakturyBtn.TabIndex = 0;
+            this.NrFakturyBtn.Text = "Szukaj";
+            this.NrFakturyBtn.UseVisualStyleBackColor = true;
+            this.NrFakturyBtn.Click += new System.EventHandler(this.NrFakturyBtn_Click);
+            // 
+            // nrFakturyTxt
+            // 
+            this.nrFakturyTxt.Location = new System.Drawing.Point(19, 19);
+            this.nrFakturyTxt.Name = "nrFakturyTxt";
+            this.nrFakturyTxt.Size = new System.Drawing.Size(100, 20);
+            this.nrFakturyTxt.TabIndex = 1;
             // 
             // Ksiazka_Nadawcza
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1273, 721);
+            this.Controls.Add(this.groupBox4);
+            this.Controls.Add(this.dateTimePicker2);
+            this.Controls.Add(this.label14);
+            this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.Zaznacz);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -433,8 +502,6 @@
             this.Controls.Add(this.Button2);
             this.Controls.Add(this.Button1);
             this.Controls.Add(this.dataGridView1);
-            this.Controls.Add(this.PokazBtn);
-            this.Controls.Add(this.dateTimePicker1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Ksiazka_Nadawcza";
             this.Text = "Książka nadawcza";
@@ -444,6 +511,9 @@
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -489,6 +559,12 @@
         private System.Windows.Forms.TextBox textBox5;
         private System.Windows.Forms.TextBox textBox6;
         private System.Windows.Forms.Button Zaznacz;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.DateTimePicker dateTimePicker2;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.TextBox nrFakturyTxt;
+        private System.Windows.Forms.Button NrFakturyBtn;
     }
 }
 

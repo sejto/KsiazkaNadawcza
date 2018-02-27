@@ -48,7 +48,7 @@ namespace KsiazkaNadawcza
             string miasto = textBox2.Text;
             string faktura = textBox1.Text;
             dataGridView2.Rows.Add(true,nazwa, ulica, nrdomu, kod, miasto," ",faktura);
-           // KontrahentLista.Add(new Kontrahent(nazwa, ulica, nrdomu, kod, miasto, Uwagi));
+            dataGridView2.FirstDisplayedScrollingRowIndex = dataGridView2.RowCount - 1;
         } //button Dodaj
         private void Zaznacz_Click(object sender, EventArgs e)
         {
@@ -105,7 +105,7 @@ namespace KsiazkaNadawcza
                     string miasto = dataGridView1[4, rownumber].Value.ToString();
                     //string Uwagi = dataGridView1[7, rownumber].Value.ToString();
                     dataGridView2.Rows.Add(true,nazwa, ulica, nrdomu, kod, miasto," ");
-
+                    dataGridView2.FirstDisplayedScrollingRowIndex = dataGridView2.RowCount - 1;
                 }
             }
 
@@ -202,13 +202,14 @@ namespace KsiazkaNadawcza
             XFont font = new XFont("Times", 10, XFontStyle.Bold);
             XFont fontNormal = new XFont("Arial", 7, XFontStyle.Regular, new XPdfFontOptions(PdfFontEncoding.Unicode));
             int posX = 30;
-            int posXC = 200;
+            int posXC = 250;
             int offsetY = 10;
             int posXoplata = 450;
             string data = dateTimePicker1.Value.Date.ToString("yyyy-MM-dd");
             string[] lineour = new string[6];
             string[] linecust = new string[6];
             string file = "parametry.xml";
+            string filename = "";
             Print pdf = new Print();
             PdfDocument document = new PdfDocument();
             XmlDocument xmlDoc = new XmlDocument();
@@ -233,7 +234,9 @@ namespace KsiazkaNadawcza
                 {
                     int posY = 30;
                     int posYC = 250;
+                    int posYoffset = 30;
                     int posYoplata = 30;
+                    int nrkoperty;
                     string nazwa = dataGridView2[1, i].Value.ToString();
                     string ulica = dataGridView2[2, i].Value.ToString();
                     string InnyAdres = "";
@@ -259,8 +262,33 @@ namespace KsiazkaNadawcza
                         gfx.DrawString(lineour[count], font, XBrushes.Black, new XRect(posX, posY, 190, 35), XStringFormat.TopLeft);
                         posY = posY + offsetY;
                     }
+                    //--------numeracja kopert---------------------
+                    nrkoperty = i + 1;
+                    gfx.DrawString(nrkoperty.ToString(), fontNormal, XBrushes.Black, new XRect(posX, posY, 190, 35), XStringFormat.TopLeft);
                     //---------wydruk danych kontrahenta-----------
-                    gfx.DrawString(nazwa, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
+                    //-------------------------------------------
+                    StringBuilder completedWord = new StringBuilder();
+                    int znaki = nazwa.Count();
+                    if (znaki > 40)
+                    {
+
+                        completedWord.Append(nazwa.Substring(0, 40));//Jeżeli za długa nazwa kontrahenta, to po 53 znaku podzielic na 2 linie
+                        completedWord.AppendLine();
+                        string pierwszalinia = completedWord.ToString();
+                        completedWord.Clear();
+                        completedWord.Append(nazwa.Substring(40, znaki - 40));
+                        string drugalinia = completedWord.ToString();
+                        XRect adresat1linia = new XRect(posXC, posYC-10, 120, 20);
+                        XRect adresat2linia = new XRect(posXC, posYC, 120, 20);
+                        gfx.DrawString(pierwszalinia, font, XBrushes.Black, adresat1linia, XStringFormats.TopLeft);
+                        gfx.DrawString(drugalinia, font, XBrushes.Black, adresat2linia, XStringFormats.TopLeft);
+                    }
+                    else
+                    {
+                        gfx.DrawString(nazwa, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
+                    }
+                    //-------------------------------------------
+                   // gfx.DrawString(nazwa, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
                     posYC = posYC + offsetY;
                     gfx.DrawString(ulica, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
                     posYC = posYC + offsetY;
@@ -277,7 +305,9 @@ namespace KsiazkaNadawcza
                     posYoplata = posYoplata + offsetY;
                 }
             }
-            string filename = AppDomain.CurrentDomain.BaseDirectory + @"\pdf\Koperta_" + data + ".pdf";
+            int f = 1;
+            while (File.Exists(filename)) { filename = AppDomain.CurrentDomain.BaseDirectory + @"\pdf\Koperta_" + data + "_" + f + ".pdf"; f++; }
+            filename = AppDomain.CurrentDomain.BaseDirectory + @"\pdf\Koperta_" + data + ".pdf"; 
             document.Save(filename);
             Process.Start(filename);
         }
@@ -316,33 +346,20 @@ namespace KsiazkaNadawcza
         private void Button2_Click(object sender, EventArgs e)
         {
             DrukujKsiazke();
+        } //DrukujKsiazke
+        private void CheckKeys(object sender, System.Windows.Forms.KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)13)
+            {
+                SzukajBtn_Click(sender, (EventArgs)e);
+            }
         }
         private static readonly XPen _pen = new XPen(XColors.Black, 0.5);
-        void DrukujKsiazke1()
-        {
-            PdfDocument document = new PdfDocument();
-            var page = new PdfPage
-            {
-                Size = PageSize.A4,
-                Orientation = PageOrientation.Landscape,
-                Rotate = 0
-            };
-            document.Pages.Add(page);
-
-            XFont font = new XFont("Times", 25, XFontStyle.Bold);
-            XGraphics gfx = XGraphics.FromPdfPage(page);
-            gfx.DrawString(page.Size.ToString() + " (landscape) size:" + page.Width + " " + page.Height, font,
-            XBrushes.DarkRed, new XRect(1, 1, page.Width, page.Height),XStringFormat.Center);
-            string filename = "PageSizes.pdf";
-            document.Save(filename);
-            Process.Start(filename); 
-        }
         void DrukujKsiazke()
         {
-            string data = dateTimePicker1.Value.Date.ToString("yyyy-MM-dd");
+            string data = dateTimePicker2.Value.Date.ToString("yyyy-MM-dd");
             PdfDocument document = new PdfDocument();
             var page = new PdfPage();
-
             Print ksiazka = new Print();
             page = document.AddPage();
             page.Size = PageSize.A4;
@@ -350,28 +367,50 @@ namespace KsiazkaNadawcza
             page.Rotate = 0;
 
             int posYoffset = 80;
+            double EndPage = page.Height -150;
+           // MessageBox.Show("end:" + EndPage + " posy: " + posYoffset);
             int lp = 1;
             ksiazka.RysujKsiazke(page,data);
-            //============================================
             for (int i = 0; i < dataGridView2.Rows.Count - 1; i++)
             {
-                if (Convert.ToBoolean(dataGridView2.Rows[i].Cells[0].Value))
+
+
+                if (Convert.ToBoolean(dataGridView2.Rows[i].Cells[0].Value))  //jezeli zaznaczony
                 {
                     string nazwa = dataGridView2[1, i].Value.ToString();
                     string ulica = dataGridView2[2, i].Value.ToString();
                     string nrdomu = dataGridView2[3, i].Value.ToString();
                     string kod = dataGridView2[4, i].Value.ToString();
                     string miasto = dataGridView2[5, i].Value.ToString();
+                    if (dataGridView2[6, i].Value.ToString().Length > 2)
+                    {
+                        string InnyAdres = dataGridView2[6, i].Value.ToString();
+                        //MessageBox.Show(InnyAdres);
+                        ulica = InnyAdres;
+                        miasto = "";
+                        kod = "";
+                    }
                     string faktura = "";
-                    if (! string.IsNullOrEmpty(dataGridView2.Rows[i].Cells[7].Value as string))
+                    if (!string.IsNullOrEmpty(dataGridView2.Rows[i].Cells[7].Value as string))
                     {
                         faktura = dataGridView2[7, i].Value.ToString();
                     }
                     // MessageBox.Show(nazwa + ulica + nrdomu + kod + miasto + faktura);
-                    ksiazka.RysujKsiazkePozycje(page, lp, nazwa, ulica + " " + nrdomu + ", " + kod + " " + miasto, faktura, posYoffset);
-                    posYoffset = posYoffset + 20;
-                    lp = ++lp;
+                    if (posYoffset > EndPage)
+                    {
+                        page = document.AddPage();
+                        posYoffset = -20;
+                        page.Size = PageSize.A4;
+                        page.Orientation = PageOrientation.Landscape;
+                        page.Rotate = 0;
+                    }
+                        ksiazka.RysujKsiazkePozycje(page, lp, nazwa, ulica + " " + nrdomu + ", " + kod + " " + miasto, faktura, posYoffset);
+                        posYoffset = posYoffset + 20;
+                        lp = ++lp;
+                    
                 }
+
+                
             }
             int f = 1;
             string filename = AppDomain.CurrentDomain.BaseDirectory + @"\pdf\Ksiazka_" + data + ".pdf";
@@ -379,6 +418,11 @@ namespace KsiazkaNadawcza
             
             document.Save(filename);
             Process.Start(filename);
+        }
+
+        private void NrFakturyBtn_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("jeszcze nie działa");
         }
     }
     public class Kontrahent
@@ -546,6 +590,7 @@ namespace KsiazkaNadawcza
         }
         public void RysujKsiazkePozycje(PdfPage page, int lp, string nazwa, string adres, string nrfaktury, int posYoffset)
         {
+            
             using (XGraphics graphics = XGraphics.FromPdfPage(page))
             {
                 XRect LPKontr = new XRect(posX, posYoffset + 90, 20, 20);
@@ -585,9 +630,50 @@ namespace KsiazkaNadawcza
 
 
                 graphics.DrawString(lp.ToString(), fontKontr, brush, LPKontrtxt, XStringFormats.TopLeft);
-                graphics.DrawString(nazwa, fontKontr, brush, AdresatKontrtxt, XStringFormats.TopLeft);
+                StringBuilder completedWord = new StringBuilder();
+                int znaki = nazwa.Count();
+                if (znaki > 53)
+                {
+
+                    completedWord.Append(nazwa.Substring(0, 53));//Jeżeli za długa nazwa kontrahenta, to po 53 znaku podzielic na 2 linie
+                    completedWord.AppendLine();
+                    string pierwszalinia = completedWord.ToString();
+                    completedWord.Clear();
+                    completedWord.Append(nazwa.Substring(53, znaki - 53));
+                    string drugalinia = completedWord.ToString();
+                    XRect adresat1linia = new XRect(posX + 23, posYoffset + 93, 150, 20);
+                    XRect adresat2linia = new XRect(posX + 23, posYoffset + 100, 150, 20);
+                    graphics.DrawString(pierwszalinia, fontKontr, brush, adresat1linia, XStringFormats.TopLeft);
+                    graphics.DrawString(drugalinia, fontKontr, brush, adresat2linia, XStringFormats.TopLeft);
+                }
+                else
+                {
+                    graphics.DrawString(nazwa, fontKontr, brush, AdresatKontrtxt, XStringFormats.TopLeft);
+                }
                 graphics.DrawString(adres, fontKontr, brush, AdresKontrtxt, XStringFormats.TopLeft);
-                graphics.DrawString(nrfaktury, fontNumer, brush, FakturaKontrtxt, XStringFormats.TopLeft);
+
+                //--------------
+                int znakiFV = nrfaktury.Count();
+                StringBuilder completedFV = new StringBuilder();
+                if (znakiFV > 30)
+                {
+                    completedFV.Append(nrfaktury.Substring(0, 30));
+                    completedFV.AppendLine();
+                    string nrfakturypierwszalinia = completedFV.ToString();
+                    completedFV.Clear();
+                    completedFV.Append(nrfaktury.Substring(30, znakiFV - 30));
+                    string nrfakturydrugalinia = completedFV.ToString();
+                    XRect nrfaktury1linia = new XRect(posX + 683, posYoffset + 93, 100, 20);
+                    XRect nrfaktury2linia = new XRect(posX + 683, posYoffset + 100, 100, 20);
+                    graphics.DrawString(nrfakturypierwszalinia, fontKontr, brush, nrfaktury1linia, XStringFormats.TopLeft);
+                    graphics.DrawString(nrfakturydrugalinia, fontKontr, brush, nrfaktury2linia, XStringFormats.TopLeft);
+                }
+                else
+                {
+                    graphics.DrawString(nrfaktury, fontNumer, brush, FakturaKontrtxt, XStringFormats.TopLeft);
+                }
+                //-----------------
+                
             }
         }
     }
