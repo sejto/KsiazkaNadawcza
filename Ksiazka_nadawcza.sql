@@ -26,11 +26,5 @@ FROM Faktury AS t where data = '2018-02-19' GROUP BY t.nazwa
 SELECT t.nazwa,t.data, STUFF((SELECT ',' + s.nrdok FROM OTD.dbo.Faktury s 
 WHERE s.nazwa = t.nazwa and data = '2018-02-19' FOR XML PATH('')),1,1,'') AS CSV,Ulica, NrDomu, Kod, Miasto
 FROM OTD.dbo.Faktury AS t where data = '2018-02-19' GROUP BY t.nazwa, t.data, t.ulica, t.nrdomu, t.kod,t.miasto
-
-Nazwa, Data, NrDok,  Ulica, NrDomu, Kod, Miasto
-
-SELECT t.ID, STUFF((SELECT ',' + s.Col FROM TestTable s
-WHERE s.ID = t.ID FOR XML PATH('')),1,1,'') AS CSV
-FROM TestTable AS t
-GROUP BY t.ID
-GO
+--------------------
+select Nazwa, Ulica,CASE WHEN (NrLokalu IS NULL or NrLokalu='')THEN NrDomu ELSE NrDomu+'/'+NrLokalu END as NrDomu, kod, miasto from OTD.dbo.kontrahent where nazwa like '%oil%'

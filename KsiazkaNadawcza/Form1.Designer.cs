@@ -71,8 +71,9 @@
             this.label14 = new System.Windows.Forms.Label();
             this.dateTimePicker2 = new System.Windows.Forms.DateTimePicker();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.NrFakturyBtn = new System.Windows.Forms.Button();
             this.nrFakturyTxt = new System.Windows.Forms.TextBox();
+            this.NrFakturyBtn = new System.Windows.Forms.Button();
+            this.PozycjeLbl = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -162,6 +163,9 @@
             this.dataGridView2.Name = "dataGridView2";
             this.dataGridView2.Size = new System.Drawing.Size(1042, 336);
             this.dataGridView2.TabIndex = 8;
+           // this.dataGridView2.Click += new System.EventHandler(this.DataGridView2_CellContentClick);
+            this.dataGridView2.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridView2_CellContentClick);
+
             // 
             // groupBox1
             // 
@@ -466,16 +470,6 @@
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Nr faktury:";
             // 
-            // NrFakturyBtn
-            // 
-            this.NrFakturyBtn.Location = new System.Drawing.Point(186, 15);
-            this.NrFakturyBtn.Name = "NrFakturyBtn";
-            this.NrFakturyBtn.Size = new System.Drawing.Size(75, 23);
-            this.NrFakturyBtn.TabIndex = 0;
-            this.NrFakturyBtn.Text = "Szukaj";
-            this.NrFakturyBtn.UseVisualStyleBackColor = true;
-            this.NrFakturyBtn.Click += new System.EventHandler(this.NrFakturyBtn_Click);
-            // 
             // nrFakturyTxt
             // 
             this.nrFakturyTxt.Location = new System.Drawing.Point(19, 19);
@@ -483,11 +477,31 @@
             this.nrFakturyTxt.Size = new System.Drawing.Size(100, 20);
             this.nrFakturyTxt.TabIndex = 1;
             // 
+            // NrFakturyBtn
+            // 
+            this.NrFakturyBtn.Location = new System.Drawing.Point(186, 15);
+            this.NrFakturyBtn.Name = "NrFakturyBtn";
+            this.NrFakturyBtn.Size = new System.Drawing.Size(75, 23);
+            this.NrFakturyBtn.TabIndex = 0;
+            this.NrFakturyBtn.Text = "Dodaj";
+            this.NrFakturyBtn.UseVisualStyleBackColor = true;
+            this.NrFakturyBtn.Click += new System.EventHandler(this.NrFakturyBtn_Click);
+            // 
+            // PozycjeLbl
+            // 
+            this.PozycjeLbl.AutoSize = true;
+            this.PozycjeLbl.Location = new System.Drawing.Point(40, 699);
+            this.PozycjeLbl.Name = "PozycjeLbl";
+            this.PozycjeLbl.Size = new System.Drawing.Size(10, 13);
+            this.PozycjeLbl.TabIndex = 16;
+            this.PozycjeLbl.Text = ".";
+            // 
             // Ksiazka_Nadawcza
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1273, 721);
+            this.Controls.Add(this.PozycjeLbl);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.dateTimePicker2);
             this.Controls.Add(this.label14);
@@ -565,6 +579,7 @@
         private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.TextBox nrFakturyTxt;
         private System.Windows.Forms.Button NrFakturyBtn;
+        private System.Windows.Forms.Label PozycjeLbl;
     }
 }
 

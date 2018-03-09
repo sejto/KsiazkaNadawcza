@@ -38,6 +38,7 @@ namespace KsiazkaNadawcza
             "inner join OTD.dbo.dokkontr DK on dk.dokid = D.dokid inner join OTD.dbo.Kontrahent K on DK.kontrid = K.kontrid " +
             "where typdok = 33 and d.aktywny = 1 and data = '"+data+"'";
             PokazDokumenty(sql);
+            PoliczZaznaczone();
         } //Pokaz dokumenty
         private void Button3_Click(object sender, EventArgs e)
         {
@@ -49,7 +50,43 @@ namespace KsiazkaNadawcza
             string faktura = textBox1.Text;
             dataGridView2.Rows.Add(true,nazwa, ulica, nrdomu, kod, miasto," ",faktura);
             dataGridView2.FirstDisplayedScrollingRowIndex = dataGridView2.RowCount - 1;
+            PoliczZaznaczone();
         } //button Dodaj
+        private void SzukajBtn_Click(object sender, EventArgs e)
+        {
+            SzukajKTH();
+        }
+        private void NrFakturyBtn_Click(object sender, EventArgs e)
+        {
+            string nrfaktury = nrFakturyTxt.Text;
+            ZnajdzFakture(nrfaktury);
+            PoliczZaznaczone();
+        }
+        private void Button2_Click(object sender, EventArgs e)
+        {
+            DrukujKsiazke();
+        } //DrukujKsiazke
+
+        private void DataGridView2_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            PoliczZaznaczone();
+        } 
+        void PoliczZaznaczone()
+        {
+            if ((dataGridView2.CurrentCell as DataGridViewCheckBoxCell) != null)
+            {
+                int num = 0;
+                foreach (DataGridViewRow row in dataGridView2.Rows)
+                {
+                    bool isChecked = (bool)row.Cells[0].EditedFormattedValue;
+                    if (isChecked)
+                    {
+                        num++;
+                    }
+                }
+                PozycjeLbl.Text = "Zaznaczonych pozycji: " + num;
+            }
+        }
         private void Zaznacz_Click(object sender, EventArgs e)
         {
             foreach (DataGridViewRow row in dataGridView2.Rows)
@@ -58,23 +95,19 @@ namespace KsiazkaNadawcza
                     row.Cells[0].Value = true;
                 else
                     row.Cells[0].Value = false;
-
             }
         }
-        private void SzukajBtn_Click(object sender, EventArgs e)
-        {
-            SzukajKTH();
-        }
+        
         void CreateDGV()
         {
-            //  dataGridView2.CellClick += DataGridView2_CellClick;
             dataGridView2.RowHeadersVisible = false;
+            dataGridView2.AllowUserToAddRows = false;
             dataGridView2.Columns.Add("Column", "Nazwa");
             dataGridView2.Columns[0].Width = 300;
             dataGridView2.Columns.Add("Column", "Ulica");
             dataGridView2.Columns[1].Width = 120;
             dataGridView2.Columns.Add("Column", "NrDomu/lokalu");
-            dataGridView2.Columns[2].Width = 80;
+            dataGridView2.Columns[2].Width = 60;
             dataGridView2.Columns.Add("Column", "KodPocztowy");
             dataGridView2.Columns[3].Width = 60;
             dataGridView2.Columns.Add("Column", "Miasto");
@@ -82,7 +115,7 @@ namespace KsiazkaNadawcza
             dataGridView2.Columns.Add("Column", "Inny adres");
             dataGridView2.Columns[5].Width = 120;
             dataGridView2.Columns.Add("Column", "Nr faktury");
-            dataGridView2.Columns[5].Width = 150;
+            dataGridView2.Columns[6].Width = 300;
             DataGridViewCheckBoxColumn col = new DataGridViewCheckBoxColumn
             {
                 HeaderText = "Wybierz"
@@ -103,12 +136,11 @@ namespace KsiazkaNadawcza
                     string nrdomu = dataGridView1[2, rownumber].Value.ToString();
                     string kod = dataGridView1[3, rownumber].Value.ToString();
                     string miasto = dataGridView1[4, rownumber].Value.ToString();
-                    //string Uwagi = dataGridView1[7, rownumber].Value.ToString();
                     dataGridView2.Rows.Add(true,nazwa, ulica, nrdomu, kod, miasto," ");
                     dataGridView2.FirstDisplayedScrollingRowIndex = dataGridView2.RowCount - 1;
                 }
             }
-
+            PoliczZaznaczone();
         }
         void SzukajKTH()
         {
@@ -117,11 +149,11 @@ namespace KsiazkaNadawcza
             string sql;
             if (NIPValidate(nazwa) != true)
             {
-                sql = "select Nazwa, Ulica, Nrdomu, kod, miasto from OTD.dbo.kontrahent where nazwa like '%" + nazwa + "%'";
+                sql = "select Nazwa, Ulica,CASE WHEN (NrLokalu IS NULL or NrLokalu='')THEN NrDomu ELSE NrDomu+'/'+NrLokalu END as NrDomu, kod, miasto from OTD.dbo.kontrahent where nazwa like '%" + nazwa + "%'";
             }
             else
             {
-                sql = "select Nazwa, Ulica, Nrdomu, kod, miasto from OTD.dbo.kontrahent where nip ='" + nazwa + "'";
+                sql = "select Nazwa, Ulica,CASE WHEN (NrLokalu IS NULL or NrLokalu='')THEN NrDomu ELSE NrDomu+'/'+NrLokalu END as NrDomu, kod, miasto from OTD.dbo.kontrahent where nip ='" + nazwa + "'";
             }
             DataSet ds = new DataSet();
             string keyname = "HKEY_CURRENT_USER\\MARKET\\ListPrzewozowy";
@@ -142,12 +174,6 @@ namespace KsiazkaNadawcza
             dataGridView1.Columns.Add(col);
             DataGridViewColumn columnnazwa = dataGridView1.Columns[0];
             columnnazwa.Width = 300;
-
-
-            //   MessageBox.Show(ds.Tables[0].Rows[i][1].ToString());
-            //string name = Convert.ToString(ds.Tables[0].Rows[0]["nazwa"]);
-            //      string name = ds.Tables[0].Rows[0][1].ToString();
-            //MessageBox.Show(name);
         }
         void PokazDokumenty(string sql)
         {
@@ -194,13 +220,14 @@ namespace KsiazkaNadawcza
             DataGridViewColumn columnNazwa = dataGridView2.Columns[1];
             DataGridViewColumn columnID = dataGridView2.Columns[0];
             columnNazwa.Width = 250;
-            //col.Width = 30; 
-
+            if (dataGridView2.RowCount != 0)
+             dataGridView2.FirstDisplayedScrollingRowIndex = dataGridView2.RowCount - 1; 
+          //  PozycjeLbl.Text = dataGridView2.RowCount.ToString();
         } 
         void DrukujKoperty()
         {
-            XFont font = new XFont("Times", 10, XFontStyle.Bold);
-            XFont fontNormal = new XFont("Arial", 7, XFontStyle.Regular, new XPdfFontOptions(PdfFontEncoding.Unicode));
+            XFont font = new XFont("Times", 11, XFontStyle.Bold);
+            XFont fontNormal = new XFont("Arial", 8, XFontStyle.Regular, new XPdfFontOptions(PdfFontEncoding.Unicode));
             int posX = 30;
             int posXC = 250;
             int offsetY = 10;
@@ -228,7 +255,7 @@ namespace KsiazkaNadawcza
                 Rotate = 0
             };
             
-            for (int i = 0; i < dataGridView2.Rows.Count-1; i++)
+            for (int i = 0; i < dataGridView2.Rows.Count; i++)
             {
                 if (Convert.ToBoolean(dataGridView2.Rows[i].Cells[0].Value))
                 {
@@ -246,7 +273,6 @@ namespace KsiazkaNadawcza
                     if (dataGridView2[6, i].Value.ToString().Length > 2)
                     {
                         InnyAdres = dataGridView2[6, i].Value.ToString();
-                        //MessageBox.Show(InnyAdres);
                         ulica = InnyAdres;
                         miasto = "";
                     }
@@ -288,13 +314,11 @@ namespace KsiazkaNadawcza
                         gfx.DrawString(nazwa, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
                     }
                     //-------------------------------------------
-                   // gfx.DrawString(nazwa, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
                     posYC = posYC + offsetY;
                     gfx.DrawString(ulica, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
                     posYC = posYC + offsetY;
                     gfx.DrawString(miasto, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
                     posYC = posYC + offsetY;
-                    //   gfx.DrawString(InnyAdres, font, XBrushes.DarkRed, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
                     posYC = posYC + offsetY;
                     //----------nadruk oplata pobrana------------
                     gfx.DrawString("OPŁATA POBRANA", font, XBrushes.Black, new XRect(posXoplata, posYoplata, 120, 35), XStringFormat.TopCenter);
@@ -306,8 +330,8 @@ namespace KsiazkaNadawcza
                 }
             }
             int f = 1;
+            filename = AppDomain.CurrentDomain.BaseDirectory + @"\pdf\Koperta_" + data + ".pdf";
             while (File.Exists(filename)) { filename = AppDomain.CurrentDomain.BaseDirectory + @"\pdf\Koperta_" + data + "_" + f + ".pdf"; f++; }
-            filename = AppDomain.CurrentDomain.BaseDirectory + @"\pdf\Koperta_" + data + ".pdf"; 
             document.Save(filename);
             Process.Start(filename);
         }
@@ -343,10 +367,7 @@ namespace KsiazkaNadawcza
             }
 
         }
-        private void Button2_Click(object sender, EventArgs e)
-        {
-            DrukujKsiazke();
-        } //DrukujKsiazke
+        
         private void CheckKeys(object sender, System.Windows.Forms.KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)13)
@@ -368,10 +389,9 @@ namespace KsiazkaNadawcza
 
             int posYoffset = 80;
             double EndPage = page.Height -150;
-           // MessageBox.Show("end:" + EndPage + " posy: " + posYoffset);
             int lp = 1;
             ksiazka.RysujKsiazke(page,data);
-            for (int i = 0; i < dataGridView2.Rows.Count - 1; i++)
+            for (int i = 0; i < dataGridView2.Rows.Count ; i++)
             {
 
 
@@ -385,7 +405,6 @@ namespace KsiazkaNadawcza
                     if (dataGridView2[6, i].Value.ToString().Length > 2)
                     {
                         string InnyAdres = dataGridView2[6, i].Value.ToString();
-                        //MessageBox.Show(InnyAdres);
                         ulica = InnyAdres;
                         miasto = "";
                         kod = "";
@@ -395,7 +414,6 @@ namespace KsiazkaNadawcza
                     {
                         faktura = dataGridView2[7, i].Value.ToString();
                     }
-                    // MessageBox.Show(nazwa + ulica + nrdomu + kod + miasto + faktura);
                     if (posYoffset > EndPage)
                     {
                         page = document.AddPage();
@@ -412,6 +430,7 @@ namespace KsiazkaNadawcza
 
                 
             }
+            ksiazka.Stopka(page);
             int f = 1;
             string filename = AppDomain.CurrentDomain.BaseDirectory + @"\pdf\Ksiazka_" + data + ".pdf";
             while (File.Exists(filename)) { filename = AppDomain.CurrentDomain.BaseDirectory + @"\pdf\ksiazka_" + data + "_" + f + ".pdf"; f++; }
@@ -419,11 +438,45 @@ namespace KsiazkaNadawcza
             document.Save(filename);
             Process.Start(filename);
         }
-
-        private void NrFakturyBtn_Click(object sender, EventArgs e)
+        void ZnajdzFakture(string nrfaktury)
         {
-            MessageBox.Show("jeszcze nie działa");
+            string keyname = "HKEY_CURRENT_USER\\MARKET\\ListPrzewozowy";
+            RejestrIO rejestr = new RejestrIO();
+            string klucz = rejestr.CzytajKlucz(keyname, "SQLconnect", true);
+            var conn = new SqlConnection(klucz);
+            string rok = dateTimePicker1.Value.Date.ToString("yy");
+         
+            string sql = "SELECT * FROM OTD.dbo.Faktury where nrdok = 'FV/" + rok + "/"+nrfaktury+"'";
+            SqlDataAdapter adp = new SqlDataAdapter(sql, conn);
+            DataSet ds = new DataSet();
+            adp.Fill(ds);
+            for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+            {
+                string nazwa = ds.Tables[0].Rows[i][2].ToString();
+                string ulica = ds.Tables[0].Rows[i][3].ToString();
+                string nrdomu = ds.Tables[0].Rows[i][4].ToString();
+                string kod = ds.Tables[0].Rows[i][5].ToString();
+                string miasto = ds.Tables[0].Rows[i][6].ToString();
+                string faktura = ds.Tables[0].Rows[i][1].ToString();
+                //--dodac warunek sprawdzajacy czy w DGV istnieje firma o takiej nazwie, jezeli tak to odczytac zawartosc pola nrfaktury i dodac w jednej pozycji
+               //---------wykorzystac fragment ponizszy w oddzielnej funkcji - 
+                for (int rows = 0; rows < dataGridView2.Rows.Count; rows++)
+                {
+                    string nazwaDodawana = dataGridView2[1, rows].Value.ToString();
+                    if (nazwa == nazwaDodawana)
+                    {
+                       // MessageBox.Show(dataGridView2[1, rows].Value.ToString());
+                        string polefaktura = dataGridView2[7, rows].Value.ToString();
+                        faktura = faktura + ", " + polefaktura;
+                        dataGridView2.Rows.RemoveAt(rows);
+                    }
+                }
+                //---------------
+                dataGridView2.Rows.Add(true, nazwa, ulica, nrdomu, kod, miasto, " ", faktura);
+            }
+            dataGridView2.FirstDisplayedScrollingRowIndex = dataGridView2.RowCount - 1;
         }
+
     }
     public class Kontrahent
     {
@@ -457,6 +510,8 @@ namespace KsiazkaNadawcza
         private static readonly XFont fontKontr = new XFont("Arial", 6, XFontStyle.Regular, new XPdfFontOptions(PdfFontEncoding.Unicode));
         private static readonly XFont fontNumer = new XFont("Arial", 6, XFontStyle.Regular, new XPdfFontOptions(PdfFontEncoding.Unicode));
         private static readonly XFont fontDates = new XFont("Arial", 10, XFontStyle.Bold, new XPdfFontOptions(PdfFontEncoding.Unicode));
+        private static readonly XFont fontSubtitle = new XFont("Arial", 6, XFontStyle.Regular, new XPdfFontOptions(PdfFontEncoding.Unicode));
+
         int posX = 30;
         int posY = 80;
         int posXData = 350;
@@ -674,6 +729,25 @@ namespace KsiazkaNadawcza
                 }
                 //-----------------
                 
+            }
+        }
+        public void Stopka(PdfPage page)
+        {
+            //PdfPage numpage = page[1];
+
+            using (XGraphics graphics = XGraphics.FromPdfPage(page))
+            {
+                graphics.DrawLine(pen, new XPoint(28, page.Height - 26), new XPoint(page.Width - 30.75, page.Height - 26));
+                XRect rectFooter = new XRect(28, page.Height - 25, page.Width - 59, 7);
+                XStringFormat formatNear = new XStringFormat
+                {
+                    Alignment = XStringAlignment.Near
+                };
+                XStringFormat formatFar = new XStringFormat
+                {
+                    Alignment = XStringAlignment.Far
+                };
+                graphics.DrawString("Książka nadawcza v1.0 ©sejto.pl", fontSubtitle, brush, rectFooter, formatNear);
             }
         }
     }
