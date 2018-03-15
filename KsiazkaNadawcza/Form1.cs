@@ -21,7 +21,7 @@ namespace KsiazkaNadawcza
     public partial class Ksiazka_Nadawcza : Form
     {
         public static List<Kontrahent> KontrahentLista = new List<Kontrahent>();
-
+        
         public Ksiazka_Nadawcza()
         {
             InitializeComponent();
@@ -224,117 +224,7 @@ namespace KsiazkaNadawcza
              dataGridView2.FirstDisplayedScrollingRowIndex = dataGridView2.RowCount - 1; 
           //  PozycjeLbl.Text = dataGridView2.RowCount.ToString();
         } 
-        void DrukujKoperty()
-        {
-            XFont font = new XFont("Times", 11, XFontStyle.Bold);
-            XFont fontNormal = new XFont("Arial", 8, XFontStyle.Regular, new XPdfFontOptions(PdfFontEncoding.Unicode));
-            int posX = 30;
-            int posXC = 250;
-            int offsetY = 10;
-            int posXoplata = 450;
-            string data = dateTimePicker1.Value.Date.ToString("yyyy-MM-dd");
-            string[] lineour = new string[6];
-            string[] linecust = new string[6];
-            string file = "parametry.xml";
-            string filename = "";
-            Print pdf = new Print();
-            PdfDocument document = new PdfDocument();
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(file);
-            XmlNodeList nodeList = xmlDoc.SelectNodes("/Parametry/Firma/Wartosc");
-            int l = 0;
-            foreach (XmlNode _node in nodeList)
-            {
-               lineour[l] = _node.InnerText.ToString(); //Kolejne linie nazwy naszej firmy z xml
-               l = l + 1;
-            }
-            var page = new PdfPage
-            {
-                Size = PageSize.A5,
-                Orientation = PageOrientation.Landscape,
-                Rotate = 0
-            };
-            
-            for (int i = 0; i < dataGridView2.Rows.Count; i++)
-            {
-                if (Convert.ToBoolean(dataGridView2.Rows[i].Cells[0].Value))
-                {
-                    int posY = 30;
-                    int posYC = 250;
-                    int posYoffset = 30;
-                    int posYoplata = 30;
-                    int nrkoperty;
-                    string nazwa = dataGridView2[1, i].Value.ToString();
-                    string ulica = dataGridView2[2, i].Value.ToString();
-                    string InnyAdres = "";
-                    ulica = ulica + " " + dataGridView2[3, i].Value.ToString();
-                    string miasto = dataGridView2[4, i].Value.ToString();
-                    miasto = miasto + " " + dataGridView2[5, i].Value.ToString();
-                    if (dataGridView2[6, i].Value.ToString().Length > 2)
-                    {
-                        InnyAdres = dataGridView2[6, i].Value.ToString();
-                        ulica = InnyAdres;
-                        miasto = "";
-                    }
-                    page = document.AddPage();
-                    page.Size = PageSize.A5;
-                    page.Orientation = PageOrientation.Landscape;
-                    page.Rotate = 0;
-                    XGraphics gfx = XGraphics.FromPdfPage(page);
-                    int c = lineour.Count();
-                    //---------wydruk nasze dane-------------------
-                    for (int count = 0; count < 5; count++)
-                    {
-                        gfx.DrawString(lineour[count], font, XBrushes.Black, new XRect(posX, posY, 190, 35), XStringFormat.TopLeft);
-                        posY = posY + offsetY;
-                    }
-                    //--------numeracja kopert---------------------
-                    nrkoperty = i + 1;
-                    gfx.DrawString(nrkoperty.ToString(), fontNormal, XBrushes.Black, new XRect(posX, posY, 190, 35), XStringFormat.TopLeft);
-                    //---------wydruk danych kontrahenta-----------
-                    //-------------------------------------------
-                    StringBuilder completedWord = new StringBuilder();
-                    int znaki = nazwa.Count();
-                    if (znaki > 40)
-                    {
-
-                        completedWord.Append(nazwa.Substring(0, 40));//Jeżeli za długa nazwa kontrahenta, to po 53 znaku podzielic na 2 linie
-                        completedWord.AppendLine();
-                        string pierwszalinia = completedWord.ToString();
-                        completedWord.Clear();
-                        completedWord.Append(nazwa.Substring(40, znaki - 40));
-                        string drugalinia = completedWord.ToString();
-                        XRect adresat1linia = new XRect(posXC, posYC-10, 120, 20);
-                        XRect adresat2linia = new XRect(posXC, posYC, 120, 20);
-                        gfx.DrawString(pierwszalinia, font, XBrushes.Black, adresat1linia, XStringFormats.TopLeft);
-                        gfx.DrawString(drugalinia, font, XBrushes.Black, adresat2linia, XStringFormats.TopLeft);
-                    }
-                    else
-                    {
-                        gfx.DrawString(nazwa, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
-                    }
-                    //-------------------------------------------
-                    posYC = posYC + offsetY;
-                    gfx.DrawString(ulica, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
-                    posYC = posYC + offsetY;
-                    gfx.DrawString(miasto, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
-                    posYC = posYC + offsetY;
-                    posYC = posYC + offsetY;
-                    //----------nadruk oplata pobrana------------
-                    gfx.DrawString("OPŁATA POBRANA", font, XBrushes.Black, new XRect(posXoplata, posYoplata, 120, 35), XStringFormat.TopCenter);
-                    posYoplata = posYoplata + offsetY;
-                    gfx.DrawString("TAXE PERÇUE - POLOGNE", font, XBrushes.Black, new XRect(posXoplata, posYoplata, 120, 35), XStringFormat.TopCenter);
-                    posYoplata = posYoplata + offsetY;
-                    gfx.DrawString("Umowa z Pocztą Polską S.A ID 337248/B", fontNormal, XBrushes.Black, new XRect(posXoplata, posYoplata, 120, 35), XStringFormat.TopCenter);
-                    posYoplata = posYoplata + offsetY;
-                }
-            }
-            int f = 1;
-            filename = AppDomain.CurrentDomain.BaseDirectory + @"\pdf\Koperta_" + data + ".pdf";
-            while (File.Exists(filename)) { filename = AppDomain.CurrentDomain.BaseDirectory + @"\pdf\Koperta_" + data + "_" + f + ".pdf"; f++; }
-            document.Save(filename);
-            Process.Start(filename);
-        }
+        
         static public bool NIPValidate(string NIPValidate)
         {
             const byte lenght = 10;
@@ -438,6 +328,117 @@ namespace KsiazkaNadawcza
             document.Save(filename);
             Process.Start(filename);
         }
+        void DrukujKoperty()
+        {
+            XFont font = new XFont("Times", 11, XFontStyle.Bold);
+            XFont fontNormal = new XFont("Arial", 8, XFontStyle.Regular, new XPdfFontOptions(PdfFontEncoding.Unicode));
+            int posX = 30;
+            int posXC = 250;
+            int offsetY = 10;
+            int posXoplata = 450;
+            string data = dateTimePicker1.Value.Date.ToString("yyyy-MM-dd");
+            string[] lineour = new string[6];
+            string[] linecust = new string[6];
+            string file = "parametry.xml";
+            string filename = "";
+            Print pdf = new Print();
+            PdfDocument document = new PdfDocument();
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.Load(file);
+            XmlNodeList nodeList = xmlDoc.SelectNodes("/Parametry/Firma/Wartosc");
+            int l = 0;
+            foreach (XmlNode _node in nodeList)
+            {
+                lineour[l] = _node.InnerText.ToString(); //Kolejne linie nazwy naszej firmy z xml
+                l = l + 1;
+            }
+            var page = new PdfPage
+            {
+                Size = PageSize.A5,
+                Orientation = PageOrientation.Landscape,
+                Rotate = 0
+            };
+            int nrkoperty = 1;
+            for (int i = 0; i < dataGridView2.Rows.Count; i++)
+            {
+                if (Convert.ToBoolean(dataGridView2.Rows[i].Cells[0].Value))
+                {
+                    int posY = 30;
+                    int posYC = 250;
+                    int posYoffset = 30;
+                    int posYoplata = 30;
+                    
+                    string nazwa = dataGridView2[1, i].Value.ToString();
+                    string ulica = dataGridView2[2, i].Value.ToString();
+                    string InnyAdres = "";
+                    ulica = ulica + " " + dataGridView2[3, i].Value.ToString();
+                    string miasto = dataGridView2[4, i].Value.ToString();
+                    miasto = miasto + " " + dataGridView2[5, i].Value.ToString();
+                    if (dataGridView2[6, i].Value.ToString().Length > 2)
+                    {
+                        InnyAdres = dataGridView2[6, i].Value.ToString();
+                        ulica = InnyAdres;
+                        miasto = "";
+                    }
+                    page = document.AddPage();
+                    page.Size = PageSize.A5;
+                    page.Orientation = PageOrientation.Landscape;
+                    page.Rotate = 0;
+                    XGraphics gfx = XGraphics.FromPdfPage(page);
+                    int c = lineour.Count();
+                    //---------wydruk nasze dane-------------------
+                    for (int count = 0; count < 5; count++)
+                    {
+                        gfx.DrawString(lineour[count], font, XBrushes.Black, new XRect(posX, posY, 190, 35), XStringFormat.TopLeft);
+                        posY = posY + offsetY;
+                    }
+                    //--------numeracja kopert---------------------
+                    gfx.DrawString(nrkoperty.ToString(), fontNormal, XBrushes.Black, new XRect(posX, posY, 190, 35), XStringFormat.TopLeft);
+                    nrkoperty = ++nrkoperty;
+                    //---------wydruk danych kontrahenta-----------
+                    //-------------------------------------------
+                    StringBuilder completedWord = new StringBuilder();
+                    int znaki = nazwa.Count();
+                    if (znaki > 40)
+                    {
+
+                        completedWord.Append(nazwa.Substring(0, 40));//Jeżeli za długa nazwa kontrahenta, to po 53 znaku podzielic na 2 linie
+                        completedWord.AppendLine();
+                        string pierwszalinia = completedWord.ToString();
+                        completedWord.Clear();
+                        completedWord.Append(nazwa.Substring(40, znaki - 40));
+                        string drugalinia = completedWord.ToString();
+                        XRect adresat1linia = new XRect(posXC, posYC - 10, 120, 20);
+                        XRect adresat2linia = new XRect(posXC, posYC, 120, 20);
+                        gfx.DrawString(pierwszalinia, font, XBrushes.Black, adresat1linia, XStringFormats.TopLeft);
+                        gfx.DrawString(drugalinia, font, XBrushes.Black, adresat2linia, XStringFormats.TopLeft);
+                    }
+                    else
+                    {
+                        gfx.DrawString(nazwa, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
+                    }
+                    //-------------------------------------------
+                    posYC = posYC + offsetY;
+                    gfx.DrawString(ulica, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
+                    posYC = posYC + offsetY;
+                    gfx.DrawString(miasto, font, XBrushes.Black, new XRect(posXC, posYC, 190, 35), XStringFormat.TopCenter);
+                    posYC = posYC + offsetY;
+                    posYC = posYC + offsetY;
+                    //----------nadruk oplata pobrana------------
+                    gfx.DrawString("OPŁATA POBRANA", font, XBrushes.Black, new XRect(posXoplata, posYoplata, 120, 35), XStringFormat.TopCenter);
+                    posYoplata = posYoplata + offsetY;
+                    gfx.DrawString("TAXE PERÇUE - POLOGNE", font, XBrushes.Black, new XRect(posXoplata, posYoplata, 120, 35), XStringFormat.TopCenter);
+                    posYoplata = posYoplata + offsetY;
+                    gfx.DrawString("Umowa z Pocztą Polską S.A ID 337248/B", fontNormal, XBrushes.Black, new XRect(posXoplata, posYoplata, 120, 35), XStringFormat.TopCenter);
+                    posYoplata = posYoplata + offsetY;
+                }
+            }
+            int f = 1;
+            filename = AppDomain.CurrentDomain.BaseDirectory + @"\pdf\Koperta_" + data + ".pdf";
+            while (File.Exists(filename)) { filename = AppDomain.CurrentDomain.BaseDirectory + @"\pdf\Koperta_" + data + "_" + f + ".pdf"; f++; }
+            document.Save(filename);
+            Process.Start(filename);
+        }
         void ZnajdzFakture(string nrfaktury)
         {
             string keyname = "HKEY_CURRENT_USER\\MARKET\\ListPrzewozowy";
@@ -465,7 +466,6 @@ namespace KsiazkaNadawcza
                     string nazwaDodawana = dataGridView2[1, rows].Value.ToString();
                     if (nazwa == nazwaDodawana)
                     {
-                       // MessageBox.Show(dataGridView2[1, rows].Value.ToString());
                         string polefaktura = dataGridView2[7, rows].Value.ToString();
                         faktura = faktura + ", " + polefaktura;
                         dataGridView2.Rows.RemoveAt(rows);
@@ -733,7 +733,7 @@ namespace KsiazkaNadawcza
         }
         public void Stopka(PdfPage page)
         {
-            //PdfPage numpage = page[1];
+            string wersja = "20180315";
 
             using (XGraphics graphics = XGraphics.FromPdfPage(page))
             {
@@ -747,7 +747,7 @@ namespace KsiazkaNadawcza
                 {
                     Alignment = XStringAlignment.Far
                 };
-                graphics.DrawString("Książka nadawcza v1.0 ©sejto.pl", fontSubtitle, brush, rectFooter, formatNear);
+                graphics.DrawString("Książka nadawcza v1."+wersja+" ©sejto.pl", fontSubtitle, brush, rectFooter, formatNear);
             }
         }
     }
