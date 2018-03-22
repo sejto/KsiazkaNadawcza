@@ -8,6 +8,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
@@ -34,9 +35,12 @@ namespace KsiazkaNadawcza
         private void PokazBtn_Click(object sender, EventArgs e)
         {
             string data = dateTimePicker1.Value.Date.ToString("yyyy-MM-dd");
-            string sql = "select Nazwa, Data, NrDok,  Ulica, NrDomu, Kod, Miasto from OTD.dbo.Dok D " +
+            /* string sql = "select Nazwa, Data, NrDok,  Ulica, CASE WHEN (NrLokalu IS NULL or NrLokalu='')THEN NrDomu ELSE NrDomu+'/'+NrLokalu END as NrDomu, Kod, Miasto from OTD.dbo.Dok D " +
             "inner join OTD.dbo.dokkontr DK on dk.dokid = D.dokid inner join OTD.dbo.Kontrahent K on DK.kontrid = K.kontrid " +
-            "where typdok = 33 and d.aktywny = 1 and data = '"+data+"'";
+            "where typdok = 33 and d.aktywny = 1 and data = '"+data+"'"; */
+            string sql = "SELECT t.nazwa,t.data, STUFF((SELECT ',' + s.nrdok FROM OTD.dbo.Faktury s " +
+            "WHERE s.nazwa = t.nazwa and data = '" + data + "' FOR XML PATH('')),1,1,'') AS CSV, Ulica, NrDomu, Kod, Miasto " +
+            "FROM OTD.dbo.Faktury AS t where data = '" + data + "' GROUP BY t.nazwa, t.data, t.ulica, t.nrdomu, t.kod,t.miasto";
             PokazDokumenty(sql);
             PoliczZaznaczone();
         } //Pokaz dokumenty
@@ -177,28 +181,14 @@ namespace KsiazkaNadawcza
         }
         void PokazDokumenty(string sql)
         {
-         //   Baza BazaSQL = new Baza();
             dataGridView2.Columns.Clear();
             CreateDGV();
-          //  dataGridView2.DataSource = BazaSQL.Polacz(sql); ;
-           // dataGridView2.DataMember = "Kontrahenci";
-            //---------------------
-           // SqlDataAdapter myDA = new SqlDataAdapter();
-            // DataSet ds = new DataSet();
-            //  ds.Tables.Add("Kontrahenci");
-            //  myDA.Fill(ds, "Kontrahenci");
-            //-----------------------
             string keyname = "HKEY_CURRENT_USER\\MARKET\\ListPrzewozowy";
             RejestrIO rejestr = new RejestrIO();
             string klucz = rejestr.CzytajKlucz(keyname, "SQLconnect", true);
             var conn = new SqlConnection(klucz);
             string data = dateTimePicker1.Value.Date.ToString("yyyy-MM-dd");
-            /*sql = "select Nazwa, Data, NrDok,  Ulica, NrDomu, Kod, Miasto from OTD.dbo.Dok D " +
-                    "inner join OTD.dbo.dokkontr DK on dk.dokid = D.dokid inner join OTD.dbo.Kontrahent K on DK.kontrid = K.kontrid " +
-                    "where typdok = 33 and d.aktywny = 1 and data = '" + data + "'"; */
-            sql = "SELECT t.nazwa,t.data, STUFF((SELECT ',' + s.nrdok FROM OTD.dbo.Faktury s " +
-                    "WHERE s.nazwa = t.nazwa and data = '" + data + "' FOR XML PATH('')),1,1,'') AS CSV, Ulica, NrDomu, Kod, Miasto " +
-                    "FROM OTD.dbo.Faktury AS t where data = '" + data + "' GROUP BY t.nazwa, t.data, t.ulica, t.nrdomu, t.kod,t.miasto";
+
             SqlDataAdapter adp = new SqlDataAdapter(sql, conn);
             DataSet ds = new DataSet();
             adp.Fill(ds);
@@ -212,17 +202,11 @@ namespace KsiazkaNadawcza
                 string faktura = ds.Tables[0].Rows[i][2].ToString();
                 dataGridView2.Rows.Add(true,nazwa, ulica, nrdomu, kod, miasto," ",faktura);
             }
-        /*    DataGridViewCheckBoxColumn col = new DataGridViewCheckBoxColumn
-            {
-                HeaderText = "Wybierz"
-            };
-            dataGridView2.Columns.Insert(0, col);*/
             DataGridViewColumn columnNazwa = dataGridView2.Columns[1];
             DataGridViewColumn columnID = dataGridView2.Columns[0];
             columnNazwa.Width = 250;
             if (dataGridView2.RowCount != 0)
              dataGridView2.FirstDisplayedScrollingRowIndex = dataGridView2.RowCount - 1; 
-          //  PozycjeLbl.Text = dataGridView2.RowCount.ToString();
         } 
         
         static public bool NIPValidate(string NIPValidate)
@@ -401,17 +385,11 @@ namespace KsiazkaNadawcza
                     int znaki = nazwa.Count();
                     if (znaki > 40)
                     {
-
-                        completedWord.Append(nazwa.Substring(0, 40));//Jeżeli za długa nazwa kontrahenta, to po 53 znaku podzielic na 2 linie
-                        completedWord.AppendLine();
-                        string pierwszalinia = completedWord.ToString();
-                        completedWord.Clear();
-                        completedWord.Append(nazwa.Substring(40, znaki - 40));
-                        string drugalinia = completedWord.ToString();
-                        XRect adresat1linia = new XRect(posXC, posYC - 10, 120, 20);
-                        XRect adresat2linia = new XRect(posXC, posYC, 120, 20);
-                        gfx.DrawString(pierwszalinia, font, XBrushes.Black, adresat1linia, XStringFormats.TopLeft);
-                        gfx.DrawString(drugalinia, font, XBrushes.Black, adresat2linia, XStringFormats.TopLeft);
+                        List<string> lines = nazwa.SplitOn(40);//Jeżeli za długa nazwa kontrahenta, to po 40 znaku, przy uwzględnieniu wyrazów, podzielic na 2 linie
+                        XRect adresat1linia = new XRect(posXC+70, posYC - 10, 120, 20);
+                        XRect adresat2linia = new XRect(posXC+70, posYC, 120, 20);
+                        gfx.DrawString(lines[0], font, XBrushes.Black, adresat1linia, XStringFormats.TopCenter);
+                        gfx.DrawString(lines[1], font, XBrushes.Black, adresat2linia, XStringFormats.TopCenter);
                     }
                     else
                     {
@@ -460,7 +438,7 @@ namespace KsiazkaNadawcza
                 string miasto = ds.Tables[0].Rows[i][6].ToString();
                 string faktura = ds.Tables[0].Rows[i][1].ToString();
                 //--dodac warunek sprawdzajacy czy w DGV istnieje firma o takiej nazwie, jezeli tak to odczytac zawartosc pola nrfaktury i dodac w jednej pozycji
-               //---------wykorzystac fragment ponizszy w oddzielnej funkcji - 
+                //---------wykorzystac fragment ponizszy w oddzielnej funkcji - 
                 for (int rows = 0; rows < dataGridView2.Rows.Count; rows++)
                 {
                     string nazwaDodawana = dataGridView2[1, rows].Value.ToString();
@@ -733,7 +711,7 @@ namespace KsiazkaNadawcza
         }
         public void Stopka(PdfPage page)
         {
-            string wersja = "20180315";
+            string wersja = "20180322";
 
             using (XGraphics graphics = XGraphics.FromPdfPage(page))
             {
@@ -749,6 +727,34 @@ namespace KsiazkaNadawcza
                 };
                 graphics.DrawString("Książka nadawcza v1."+wersja+" ©sejto.pl", fontSubtitle, brush, rectFooter, formatNear);
             }
+        }
+    }
+    public static class StringExtensions
+    {
+
+        /// <summary>Use this function like string.Split but instead of a character to split on, 
+        /// use a maximum line width size. This is similar to a Word Wrap where no words will be split.</summary>
+        /// Note if the a word is longer than the maxcharactes it will be trimmed from the start.
+        /// <param name="initial">The string to parse.</param>
+        /// <param name="MaxCharacters">The maximum size.</param>
+        /// <remarks>This function will remove some white space at the end of a line, but allow for a blank line.</remarks>
+        /// 
+        /// <returns>An array of strings.</returns>
+        public static List<string> SplitOn(this string initial, int MaxCharacters)
+        {
+            List<string> lines = new List<string>();
+
+            if (string.IsNullOrEmpty(initial) == false)
+            {
+                string targetGroup = "Line";
+                string pattern = string.Format(@"(?<{0}>.{{1,{1}}})(?:\W|$)", targetGroup, MaxCharacters);
+
+                lines = Regex.Matches(initial, pattern, RegexOptions.Multiline | RegexOptions.CultureInvariant)
+                             .OfType<Match>()
+                             .Select(mt => mt.Groups[targetGroup].Value)
+                             .ToList();
+            }
+            return lines;
         }
     }
 }
